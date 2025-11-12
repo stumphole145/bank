@@ -16,27 +16,30 @@ void text_menu(){
     printf("5. Remittance\n");
     printf("6. Exit\n");
     printf("-------------------------------------------\n");
-    printf("\nSelect Option:");
+    printf("\nSelect Option: ");
     scanf("%s", &option);
 }
 
 void create_account(){
-    // user input
     int account_type;
-    printf("Enter Your Name:");
+    char account_type_name[20];
+    char account_file_name[50];
     char name[50];
-    scanf("%s", name);
-    printf("Enter Your Identification Number(ID):");
     char id[20];
+    int pin;
+
+    // user input
+    printf("Enter Your Name: ");
+    scanf("%s", name);
+    printf("Enter Your Identification Number(ID): ");
     scanf("%s", id);
-    printf("Enter the Type of Account (1: Savings/2: Current):");
+    printf("Enter the Type of Account (1: Savings/2: Current): ");
     scanf("%d", &account_type);
     if (account_type != 1 && account_type != 2){
         printf("Invalid Account Type Selected. Please try again.\n");
         return;
     }
-    printf("Enter a 4 Digit PIN for your Account:");
-    int pin;
+    printf("Enter a 4 Digit PIN for your Account: ");
     scanf("%d", &pin);
     if (pin < 1000 || pin > 9999){
         printf("Invalid PIN entered. Please try again.\n");
@@ -44,15 +47,24 @@ void create_account(){
     }
 
     // account logging
-    char account_type_name[20];
+
     if (account_type == 1){
         strcpy(account_type_name, "Savings");
     }
-    else {
+    else if (account_type == 2){
         strcpy(account_type_name, "Current");
     }
-    char account_file_name[50];
-    sprintf(account_file_name, "database/%d_%s.txt", id, account_type_name);
+
+    sprintf(account_file_name, "database/%s_%s.txt", id, account_type_name);
+
+    // check if account already exists
+    FILE *file_check = fopen(account_file_name, "r");
+    if (file_check != NULL) {
+        printf("Account already exists!\n");
+        fclose(file_check);
+        return;
+    }
+
     FILE *account_fp = fopen(account_file_name, "w+");
     if (account_fp == NULL) {
         printf("Error creating account file!\n");
@@ -82,7 +94,49 @@ void create_account(){
 }
 
 void delete_account(){
-    
+    char account_type_name[20];
+    char account_file_name[50];
+    char id[20];
+    char account_type[20];
+    int pin;
+    int pin_check;
+    // user input
+    printf("Enter Your Identification Number(ID) to Delete Account: ");
+    scanf("%s", &id);
+    printf("Enter the Type of Account to Delete (1: Savings/2: Current): ");
+    scanf("%s", &account_type);
+
+    if (account_type == 1){
+        strcpy(account_type_name, "Savings");
+    }
+    else if (account_type == 2) {
+        strcpy(account_type_name, "Current");
+    }
+
+    // check if account exists
+    FILE *file_check = fopen(account_file_name, "r");
+    if (file_check = NULL) {
+        printf("Account doesn't exist!\n");
+        fclose(file_check);
+        return;
+    }
+    else (file_check != NULL){
+        printf("Account found!\n");
+        fclose(file_check);
+    }
+
+    printf("Enter your 4 Digit PIN: \n");
+    scanf("%d", &pin);
+
+
+    sprintf(account_file_name, "database/%s_%s.txt", id, account_type_name);
+    FILE *pin_fp = fopen(account_file_name, "r");
+    if (pin_fp == NULL) {
+        printf("Account doesn't exist!\n");
+        return;
+    }
+
+
 }
 
 void deposit(){
