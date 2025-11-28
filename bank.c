@@ -1,12 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <windows.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <io.h>
+#include <time.h>
 
 char option[30];
-
 void text_menu(){
     printf("\n-------------------------------------------\n");
     printf("Please choose an option (1-6):\n");
@@ -23,15 +24,17 @@ void text_menu(){
 
 void create_account(){
     int account_type;
+    int account_number;
     char account_type_name[20];
-    char account_file_name[50];
+    char account_file_name_s[50], account_file_name_c[50];
     char name[50];
     char id[20];
-    int pin;
+    int pin, digits, lower, upper;
+    srand(time(NULL));
 
     // user input
     printf("Enter Your Name: ");
-    scanf("%49s", name);
+    scanf(" %49[^\n]", name);
     printf("Enter Your Identification Number(ID): ");
     scanf("%19s", id);
     printf("Enter the Type of Account (1: Savings/2: Current): ");
@@ -58,32 +61,53 @@ void create_account(){
     else if (account_type == 2){
         strcpy(account_type_name, "Current");
     }
+while(1) {
+    digits = (rand() % 3) + 7; // 7–9 digits
+    lower = 1;
 
-    sprintf(account_file_name, "database/%s_%s.txt", id, account_type_name);
+    for(int i = 1; i < digits; i++)
+        lower *= 10;
 
-    // check if account already exists
-    FILE *file_check = fopen(account_file_name, "r");
-    if (file_check != NULL) {
-        printf("Account already exists!\n");
-        fclose(file_check);
-        return;
-    }
+    upper = lower * 10 - 1;
+    account_number = (rand() % (upper - lower + 1)) + lower;
 
-    FILE *account_fp = fopen(account_file_name, "w+");
-    if (account_fp == NULL) {
+    sprintf(account_file_name_s, "database/%d_Savings.txt", account_number);
+    sprintf(account_file_name_c, "database/%d_Current.txt", account_number);
+
+    FILE *s = fopen(account_file_name_s,"r");
+    FILE *c = fopen(account_file_name_c,"r");
+
+    if(!s && !c) break; // Unique number found
+
+    if(s) fclose(s);
+    if(c) fclose(c);
+}
+    printf("Your Bank Account Number is %d, Please Remember it!\n", account_number);
+    // choose correct filename based on type
+    char final_file_name[60];
+    if (account_type == 1) 
+        strcpy(final_file_name, account_file_name_s);
+    else 
+        strcpy(final_file_name, account_file_name_c);
+
+    // create file
+    FILE *account_fp = fopen(final_file_name, "w+");
+    if (!account_fp) {
         printf("Error creating account file!\n");
         return;
     }
-    fprintf(account_fp, "Name: %s\nID: %s\nAccount Type: %s\nPIN: %d\nBalance: 0\n", name, id, account_type_name, pin);
+
+    fprintf(account_fp, "Name: %s\nID: %s\nAccount Type: %s\nAccount Number: %d\nPIN: %d\nBalance: 0\n", name, id, account_type_name, account_number, pin);
     fclose(account_fp);
 
-    // general logging, pin is giving garbage value ****
+
+    // general logging
     FILE *fp = fopen("database/accounts.txt", "a");
     if (fp == NULL) {
         printf("Error opening file!\n");
         return;
     }
-    fprintf(fp, "%s %s %d %d\n", name, id, account_type, pin);
+    fprintf(fp,"%s %s %d %d %d\n", name, id, account_number, account_type, pin);
     fclose(fp);
 
     FILE *log_fp = fopen("database/transactions.log", "a");
@@ -199,15 +223,74 @@ void delete_account(){
 }
 
 void deposit(){
+    float amount;
+    int account_number, account_type;
+    int pin;
 
+    printf("Enter Your Account Number: ");
+    scanf("%d", &account_number);
+    printf("Enter Your Bank Account Type (1: Savings/2: Current): ");
+    scanf("%d", &account_type);
+    // check if account exists then return if not
+    printf("Enter your PIN: ");
+    scanf("%d", &pin);
+    printf("Enter the amount to deposit: ");
+    scanf("%f", &amount);
+    if (amount <= 0 || amount > 50000){
+        printf("Invalid amount entered. Please try again.\n");
+        return;
+    }
+    
 }
 
 void withdrawal(){
+    float amount;
+    int account_number, account_type;
+    int pin;
+    printf("Enter Your Account Number: ");
+    scanf("%d", &account_number);
+    printf("Enter Your Bank Account Type (1: Savings/2: Current): ");
+    scanf("%d", &account_type);
+    // check if account exists then return if not
 
+    //
+    printf("Enter your PIN: ");
+    scanf("%d", &pin);
+    // Show the amount of money available before withdrawal
+    
+    printf("Enter the amount to withdraw: ");
+    scanf("%f", &amount);
+    if (amount <= 0){
+        printf("Invalid amount entered. Please try again.\n");
+        return;
+    }
 }
 
 void remittance(){
+    int sender_account_number, sender_account_type;
+    int receiver_account_number, receiver_account_type;
+    int pin;
+    float amount;
 
+    printf("Enter the Sender's Account Number: ");
+    scanf("%d", &sender_account_number);
+    printf("Enter the Sender's Bank Account Type (1: Savings/2: Current): ");
+    scanf("%d", &sender_account_type);
+    // check if sender account exists then return if not
+    printf("Enter the Receiver's Account Number: ");
+    scanf("%d", &receiver_account_number);
+    printf("Enter the Receiver's Bank Account Type (1: Savings/2: Current): ");
+    scanf("%d", &receiver_account_type);
+    // check if receiver account exists then return if not
+
+    printf("Enter Sender's PIN: ");
+    scanf("%d", &pin);
+    printf("Enter the amount to remit: ");
+    scanf("%f", &amount);
+    if (amount <= 0){
+        printf("Invalid amount entered. Please try again.\n");
+        return;
+    }
 }
 
 void options(){
@@ -228,7 +311,7 @@ void options(){
         for (int j = 0; j < i % 4; j++)
             printf(".");
         fflush(stdout);
-        sleep(1);
+        Sleep(1000);
     }
     exit(0);
     } else {
