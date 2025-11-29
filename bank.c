@@ -6,7 +6,8 @@
 #include <ctype.h>
 #include <io.h>
 #include <time.h>
-
+// PROBLEMS: ACCOUNT TYPE NAME AND ACCOUNT TYPE VARIABLE MISMATCHING
+// FUTURE: DEPOSIT/WITHDRAWAL/REMITTANCE FUNCTIONS
 char option[30];
 void text_menu(){
     printf("\n-------------------------------------------\n");
@@ -28,7 +29,7 @@ void create_account(){
     char account_type_name[20];
     char account_file_name_s[50], account_file_name_c[50];
     char name[50];
-    char id[20];
+    char id[20], id_temp[20];
     int pin, digits, lower, upper;
     srand(time(NULL));
 
@@ -107,7 +108,7 @@ while(1) {
         printf("Error opening file!\n");
         return;
     }
-    fprintf(fp,"%s %s %d %d %d\n", name, id, account_number, account_type, pin);
+    fprintf(fp,"\"%s\" %s %d %d %d\n", name, id, account_number, account_type, pin);
     fclose(fp);
 
     FILE *log_fp = fopen("database/transactions.log", "a");
@@ -122,32 +123,87 @@ while(1) {
 }
 
 void delete_account(){
-    char name[50], name_check[50];
+    char name[50], name_temp[50], name_input[50];
     char account_type_name[20];
     char account_file_name[50];
-    char id[20], id_check[20];
-    char account_type[20], account_type_check[20];
-    int pin, pin_check;
+    char number[20], number_temp[20];
+    char id[20], id_temp[20], id4[5];
+    char account_type[20], account_type_temp_copy[20];
+    int account_type_temp;
+    int pin, pin_temp;
     char line[100];
     int extracted_pin = 0;
+    // missing last 4 id ending digits check and retreive all banking accounts from index file
+    // retreive name and id for logging, done
+    printf("Retrieving account information...\n");
+    FILE *fp_list = fopen("database/accounts.txt", "r");
+    if (fp_list == NULL) {
+        printf("Error opening accounts.txt\n");
+        return;
+    }
 
-    // user input
-    // printf("Enter Your Name: ");
-    // scanf("%s", &name);
-    printf("Enter Your Identification Number(ID) to Delete Account: ");
-    scanf("%19s", &id);
+    while (fgets(line, sizeof(line), fp_list)) {
+        if(sscanf(line, "\"%49[^\"]\" %19s %19s %d %d", name_temp, id_temp, number_temp, &account_type_temp, &pin_temp) == 5) {
+            printf("%s\n", number_temp);
+        }
+    }
+
+    fclose(fp_list);
+    printf("Enter Your Bank Number to Delete Account: ");
+    scanf("%19s", &number);
     printf("Enter the Type of Account to Delete (1: Savings/2: Current): ");
     scanf("%19s", &account_type);
-
     if (strcmp(account_type, "1") == 0 || strcmp(account_type, "Savings") == 0 || strcmp(account_type, "savings") == 0 || strcmp(account_type, "save") == 0){
         strcpy(account_type_name, "Savings");
     }
     else if (strcmp(account_type, "2") == 0 || strcmp(account_type, "Current") == 0 || strcmp(account_type, "current") == 0 || strcmp(account_type, "curr") == 0) {
         strcpy(account_type_name, "Current");
     }
+    else {
+        printf("Invalid Account Type Selected. Please try again.\n");
+        return;
+    }
+    sprintf(account_file_name, "database/%s_%s.txt", number, account_type_name);
+    FILE *name_fp = fopen(account_file_name, "r");
+    if (name_fp == NULL) {
+        printf("Account doesn't exist!\n");
+        return;
+    }
+    while(fgets(line, sizeof(line), name_fp)) {
+        if (sscanf(line, "Name: %49[^\n]", name) == 1) {
+            break;
+        }
+    }
+    while(fgets(line, sizeof(line), name_fp)) {
+        if (sscanf(line, "ID: %s", id) == 1) {
+            break;
+        }
+    }
+
+        fclose(name_fp);
+    printf("Enter Your Name As Confirmation: ");
+    scanf(" %49[^\n]", name_input);
+    for (int i = 0; name[i]; i++){
+        name[i] = tolower(name[i]);
+    }
+    if (strcmp(name, name_input) != 0){
+        printf("Name does not match our records. Account deletion failed.\n");
+        return;
+    }
+    else {
+        printf("Name found in the database.\n");
+    }
+    // not done yet
+    printf("Enter The Last 4 Digits of Your Identification Number(ID): ");
+    scanf("%4s", id4);
+    if (strcmp(id + strlen(id) - 4, id4) == 0) {
+        printf("ID digits verified.\n");
+    } else {
+        printf("ID digits do not match our records. Account deletion failed.\n");
+        return;
+    }
 
     // check if account exists
-    sprintf(account_file_name, "database/%s_%s.txt", id, account_type_name);
     FILE *file_check = fopen(account_file_name, "r");
     if (file_check == NULL) {
         printf("Account doesn't exist!\n");
@@ -162,16 +218,7 @@ void delete_account(){
     printf("Enter your 4 Digit PIN: ");
     scanf("%d", &pin);
 
-    // retreive name for logging
-    FILE *name_fp = fopen(account_file_name, "r");
-    while(fgets(line, sizeof(line), name_fp)) {
-        if (sscanf(line, "Name: %s", name) == 1) {
-            break;
-        }
-    }
-    fclose(name_fp);
-
-    // read PIN from account file
+    // read PIN from account file, done
     FILE *pin_fp = fopen(account_file_name, "r");
     if (pin_fp == NULL) {
         printf("Account doesn't exist!\n");
@@ -194,20 +241,21 @@ void delete_account(){
     }
 
     // general logging
-    FILE *fp = fopen("database/accounts.txt", "r");
+    FILE *fp_del = fopen("database/accounts.txt", "r");
     FILE *temp_fp = fopen("database/temp_accounts.txt", "w");
-    if (fp == NULL || temp_fp == NULL) {
+    if (fp_del == NULL || temp_fp == NULL) {
         printf("Error opening file!\n");
         return;
     }
 
-    while(fscanf(fp, "%49s %19s %19s %d", name_check, id_check, account_type_check, &pin_check) == 4) {
-        if(strcmp(id_check, id) == 0 && strcmp(account_type_check, account_type) == 0) {
-            continue; 
-    }
-        fprintf(temp_fp, "%s %s %s %d\n", name_check, id_check, account_type_check, pin_check);
+    while(fscanf(fp_del, "\"%49[^\"]\" %19s %19s %19s %d", name_temp, id_temp, number_temp, account_type_temp_copy, &pin_temp) == 5) {
+
+    if(strcmp(number_temp, number) == 0 && strcmp(account_type_temp_copy, account_type) == 0)
+        continue;
+
+    fprintf(temp_fp, "\"%s\" %s %s %s %d\n", name_temp, id_temp, number_temp, account_type_temp_copy, pin_temp);
 }
-    fclose(fp);
+    fclose(fp_del);
     fclose(temp_fp);
     remove("database/accounts.txt");
     rename("database/temp_accounts.txt", "database/accounts.txt");
@@ -219,7 +267,6 @@ void delete_account(){
     }
     fprintf(log_fp, "Account deleted for %s with ID %s and account type %s\n", name, id, account_type);
     fclose(log_fp);
-
 }
 
 void deposit(){
