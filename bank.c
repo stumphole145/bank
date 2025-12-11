@@ -234,19 +234,20 @@ void delete_account(){
 }
 
 void deposit(){
-    float amount;
-    int account_number, account_type;
+    char amount;
+    char account_number[20], account_type[20];
     int pin;
 
     printf("Enter Your Account Number: ");
-    scanf("%d", &account_number);
+    fgets(account_number, sizeof(account_number), stdin);
     printf("Enter Your Bank Account Type (1: Savings/2: Current): ");
-    scanf("%d", &account_type);
+    fgets(account_type, sizeof(account_type), stdin);
     // check if account exists then return if not
     printf("Enter your PIN: ");
-    scanf("%d", &pin);
+    fgets(pin, sizeof(pin), stdin);
+    FILE *account_find = fopen("database/");
     printf("Enter the amount to deposit: ");
-    scanf("%f", &amount);
+    fgets(amount, sizeof(amount), stdin);
     if (amount <= 0 || amount > 50000){
         printf("Invalid amount entered. Please try again.\n");
         return;
@@ -256,19 +257,19 @@ void deposit(){
 
 void withdrawal(){
     float amount;
-    int account_number, account_type;
+    char account_number[20], account_type[20];
     int pin;
     printf("Enter Your Account Number: ");
-    scanf("%d", &account_number);
+    fgets(account_number, sizeof(account_number), stdin);
     printf("Enter Your Bank Account Type (1: Savings/2: Current): ");
-    scanf("%d", &account_type);
+    fgets(account_type, sizeof(account_type), stdin);
     // check if account exists then return if not
 
     //
     printf("Enter your PIN: ");
-    scanf("%d", &pin);
+    fgets(pin, sizeof(pin), stdin);
     // Show the amount of money available before withdrawal
-    
+    // problem: float cannot work with fgets
     printf("Enter the amount to withdraw: ");
     scanf("%f", &amount);
     if (amount <= 0){
@@ -284,20 +285,20 @@ void remittance(){
     float amount;
 
     printf("Enter the Sender's Account Number: ");
-    scanf("%d", &sender_account_number);
+    fgets(sender_account_number, sizeof(sender_account_number), stdin);
     printf("Enter the Sender's Bank Account Type (1: Savings/2: Current): ");
-    scanf("%d", &sender_account_type);
+    fgets(sender_account_type, sizeof(sender_account_type), stdin);
     // check if sender account exists then return if not
     printf("Enter the Receiver's Account Number: ");
-    scanf("%d", &receiver_account_number);
+    fgets(receiver_account_number, sizeof(receiver_account_number), stdin);
     printf("Enter the Receiver's Bank Account Type (1: Savings/2: Current): ");
-    scanf("%d", &receiver_account_type);
+    fgets(receiver_account_type, sizeof(receiver_account_type), stdin);
     // check if receiver account exists then return if not
 
     printf("Enter Sender's PIN: ");
-    scanf("%d", &pin);
+    fgets(pin, sizeof(pin), stdin);
     printf("Enter the amount to remit: ");
-    scanf("%f", &amount);
+    fgets(amount, sizeof(amount), stdin);
     if (amount <= 0){
         printf("Invalid amount entered. Please try again.\n");
         return;
