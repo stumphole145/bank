@@ -518,7 +518,7 @@ void options(){
 }
 int main(){
     srand(time(NULL));
-    system("mkdir database");
+    system("mkdir database >nul 2>nul");
     while (1){
         text_menu();
         options();
